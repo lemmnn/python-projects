@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Study Planner</title>
+
+    <style>
+    body {
+        font-family: 'comic sans ms';
+        background: #d19ba4;
+        text-align: center;
+        margin: 0;
+        padding: 0;
+    }
+
+    h1 {
+        background: #632129;
+        color: white;
+        padding: 20px;
+        margin: 0;
+    }
+
+    input {
+        padding: 10px;
+        width: 250px;
+        margin-top: 20px;
+        border: 1px solid #fffdfd;
+        border-radius: 5px;
+    }
+
+    button {
+        padding: 10px 15px;
+        margin-left: 5px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    button:hover {
+        opacity: 0.8;
+    }
+
+    /* Add button */
+    button:nth-of-type(1) {
+        background: #2d1e19;
+        color: white;
+    }
+
+    ul {
+        list-style: none;
+        padding: 0;
+        margin-top: 20px;
+    }
+
+    li {
+        background: white;
+        margin: 10px auto;
+        padding: 10px;
+        width: 300px;
+        border-radius: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    li span {
+        flex: 1;
+        text-align: left;
+    }
+
+    /* Done button */
+    button.done {
+        background: #7af6b0;
+        color: white;
+    }
+
+    /* Delete button */
+    button.delete {
+        background: #ff6c7b;
+        color: white;
+    }
+
+</style>
+
+</head>
+
+<body>
+    <h1> ~ Study Planner ~</h1>
+
+    <input id="taskInput" placeholder="Enter task">
+    <button onclick="addTask()">Add</button>
+
+    <ul id="taskList"></ul>
+
+<script>
+    // Load tasks
+    function loadTasks() {
+        fetch('/tasks')
+        .then(res => res.json())
+        .then(data => {
+            let list = document.getElementById("taskList");
+            list.innerHTML = "";
+
+            data.forEach(task => {
+                let li = document.createElement("li");
+
+                li.innerHTML = `
+                    <span style="${task.completed ? 'text-decoration: line-through; color: gray;' : ''}">
+                        ${task.title}
+                    </span>
+
+                    <button class="done" onclick="markDone(${task.id})">Done</button>
+                    <button class="delete" onclick="deleteTask(${task.id})">Delete</button>
+                `;
+
+                list.appendChild(li);
+            });
+        });
+    }
+
+    // Add task
+    function addTask() {
+        let input = document.getElementById("taskInput");
+
+        fetch('/tasks', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                title: input.value
+            })
+        })
+        .then(() => {
+            input.value = "";
+            loadTasks();
+        });
+    }
+
+    // Delete task
+    function deleteTask(id) {
+        fetch(`/tasks/${id}`, {
+            method: 'DELETE'
+        })
+        .then(() => loadTasks());
+    }
+
+    // Mark complete
+    function markDone(id) {
+        fetch(`/tasks/${id}`, {
+            method: 'PATCH'
+        })
+        .then(() => loadTasks());
+    }
+
+    // initial load
+    loadTasks();
+    
+
+</script>
+
+</body>
+</html>
